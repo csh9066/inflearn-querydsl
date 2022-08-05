@@ -1,0 +1,77 @@
+package study.querydsl.repository;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberSearchCondition;
+import study.querydsl.dto.MemberTeamDto;
+import study.querydsl.entity.Member;
+import study.querydsl.entity.Team;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Transactional
+@SpringBootTest
+class MemberRepositoryTest {
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @BeforeEach
+    void initData() {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member memberA = new Member("memberA", 10, teamA);
+        Member memberB = new Member("memberB", 20, teamA);
+        Member memberC = new Member("memberC", 30, teamB);
+        Member memberD = new Member("memberD", 40, teamB);
+        em.persist(memberA);
+        em.persist(memberB);
+        em.persist(memberC);
+        em.persist(memberD);
+    }
+
+    @Test
+    void searchPageSimple() {
+        // given
+        MemberSearchCondition condition = new MemberSearchCondition();
+        PageRequest pageRequest = PageRequest.of(0, 3);
+
+        // when
+        Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
+
+        // then
+        assertThat(result.getSize()).isEqualTo(3);
+        assertThat(result.getTotalElements()).isEqualTo(4);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+    }
+
+    @Test
+    void searchPageComplex() {
+        // given
+        MemberSearchCondition condition = new MemberSearchCondition();
+        PageRequest pageRequest = PageRequest.of(0, 3);
+
+        // when
+        Page<MemberTeamDto> result = memberRepository.searchPageComplex(condition, pageRequest);
+
+        // then
+        assertThat(result.getSize()).isEqualTo(3);
+        assertThat(result.getTotalElements()).isEqualTo(4);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+    }
+}
